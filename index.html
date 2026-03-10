@@ -247,10 +247,10 @@
             <div class="flex items-start justify-between mb-3">
               <h3 class="text-base font-semibold text-gray-900 pr-6">${p.name}</h3>
             </div>
-            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${cfg.bg} ${cfg.text} ${cfg.border} border">
+            <button onclick="cycleStatus('${p.id}')" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${cfg.bg} ${cfg.text} ${cfg.border} border hover:opacity-80 transition-opacity cursor-pointer" title="Click to change status">
               <span class="w-1.5 h-1.5 rounded-full ${cfg.dot}"></span>
               ${p.status}
-            </span>
+            </button>
             <p class="text-sm text-gray-500 mt-3 leading-relaxed">${p.note || '<em class="text-gray-300">No notes</em>'}</p>
             <div class="mt-4 pt-3 border-t border-gray-100 flex items-center text-xs text-gray-400">
               <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -263,6 +263,19 @@
     }
 
     // ─── Actions ───
+    function cycleStatus(id) {
+      const projects = loadProjects();
+      const proj = projects.find(p => p.id === id);
+      if (proj) {
+        const order = ['On Track', 'At Risk', 'Done'];
+        const nextIdx = (order.indexOf(proj.status) + 1) % order.length;
+        proj.status = order[nextIdx];
+        proj.updatedAt = new Date().toISOString();
+        saveProjects(projects);
+        renderProjects();
+      }
+    }
+
     function deleteProject(id) {
       const projects = loadProjects().filter(p => p.id !== id);
       saveProjects(projects);
