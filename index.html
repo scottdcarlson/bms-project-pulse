@@ -1,11 +1,308 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>BMS Project Pulse</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            navy: '#1B2A4A',
+            'navy-light': '#243556',
+            'navy-dark': '#131f37',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    .card-hover { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+    .card-hover:hover { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(0,0,0,0.1); }
+    .fade-in { animation: fadeIn 0.4s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .pulse-dot { animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+  </style>
 </head>
-<body>
-  <h1>BMS Project Pulse — Coming Soon</h1>
+<body class="bg-gray-100 min-h-screen">
+
+  <!-- Header -->
+  <header class="bg-navy text-white shadow-lg">
+    <div class="max-w-6xl mx-auto px-4 py-5 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="bg-white/10 rounded-lg p-2">
+            <svg class="w-8 h-8 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
+          </div>
+          <div>
+            <h1 class="text-2xl font-bold tracking-tight">BMS Project Pulse</h1>
+            <p class="text-blue-300 text-sm font-medium">City of Durham — Budget & Management Services</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 text-sm text-blue-200">
+          <span class="pulse-dot inline-block w-2 h-2 bg-green-400 rounded-full"></span>
+          <span id="liveTime"></span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Summary Bar -->
+  <div class="bg-navy-light border-b border-navy">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap gap-6 text-sm">
+      <div class="flex items-center gap-2">
+        <span class="text-blue-300 font-medium">Total:</span>
+        <span id="totalCount" class="text-white font-bold text-lg">0</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="w-2.5 h-2.5 bg-green-400 rounded-full inline-block"></span>
+        <span class="text-green-300 font-medium">On Track:</span>
+        <span id="onTrackCount" class="text-white font-bold">0</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="w-2.5 h-2.5 bg-yellow-400 rounded-full inline-block"></span>
+        <span class="text-yellow-300 font-medium">At Risk:</span>
+        <span id="atRiskCount" class="text-white font-bold">0</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="w-2.5 h-2.5 bg-blue-400 rounded-full inline-block"></span>
+        <span class="text-blue-300 font-medium">Done:</span>
+        <span id="doneCount" class="text-white font-bold">0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- Add Project Section -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8 fade-in">
+      <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+        <svg class="w-5 h-5 text-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+        </svg>
+        Add New Project
+      </h2>
+      <form id="addForm" class="flex flex-wrap gap-3 items-end">
+        <div class="flex-1 min-w-[200px]">
+          <label class="block text-sm font-medium text-gray-600 mb-1">Project Name</label>
+          <input type="text" id="projName" required placeholder="e.g., Workday Integration"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy focus:border-transparent" />
+        </div>
+        <div class="w-40">
+          <label class="block text-sm font-medium text-gray-600 mb-1">Status</label>
+          <select id="projStatus"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy focus:border-transparent bg-white">
+            <option value="On Track">On Track</option>
+            <option value="At Risk">At Risk</option>
+            <option value="Done">Done</option>
+          </select>
+        </div>
+        <div class="flex-1 min-w-[200px]">
+          <label class="block text-sm font-medium text-gray-600 mb-1">Note</label>
+          <input type="text" id="projNote" placeholder="Last update or quick note"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy focus:border-transparent" />
+        </div>
+        <button type="submit"
+          class="bg-navy hover:bg-navy-dark text-white font-medium px-5 py-2 rounded-lg transition-colors text-sm shadow-sm">
+          Add Project
+        </button>
+      </form>
+    </div>
+
+    <!-- Project Cards Grid -->
+    <div id="projectGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      <!-- Cards injected by JS -->
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="hidden text-center py-16">
+      <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+      </svg>
+      <p class="text-gray-400 text-lg">No projects yet. Add one above!</p>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="text-center py-6 text-gray-400 text-xs">
+    BMS Project Pulse &bull; City of Durham &bull; Built with ☕ and AI
+  </footer>
+
+  <script>
+    // ─── Default Projects ───
+    const DEFAULT_PROJECTS = [
+      {
+        id: crypto.randomUUID(),
+        name: 'RAT Power BI',
+        status: 'On Track',
+        note: 'Dashboard v2 deployed; adding drill-through filters for dept leads.',
+        updatedAt: '2026-03-08T14:30:00'
+      },
+      {
+        id: crypto.randomUUID(),
+        name: 'ADA Compliance Project',
+        status: 'At Risk',
+        note: 'Vendor remediation behind schedule — 37 PDFs still outstanding.',
+        updatedAt: '2026-03-07T11:15:00'
+      },
+      {
+        id: crypto.randomUUID(),
+        name: 'CIP Scoring',
+        status: 'On Track',
+        note: 'Scoring model finalized; pilot with Public Works next sprint.',
+        updatedAt: '2026-03-09T09:45:00'
+      },
+      {
+        id: crypto.randomUUID(),
+        name: 'Budget GL Extract',
+        status: 'Done',
+        note: 'Automated nightly extract live in production since Feb 28.',
+        updatedAt: '2026-02-28T16:00:00'
+      },
+      {
+        id: crypto.randomUUID(),
+        name: 'Twilio A2P',
+        status: 'On Track',
+        note: 'A2P 10DLC registration approved; testing SMS workflows.',
+        updatedAt: '2026-03-10T08:00:00'
+      }
+    ];
+
+    // ─── Data Layer ───
+    const STORAGE_KEY = 'bms_project_pulse';
+
+    function loadProjects() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_PROJECTS));
+        return [...DEFAULT_PROJECTS];
+      }
+      return JSON.parse(raw);
+    }
+
+    function saveProjects(projects) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
+    }
+
+    // ─── Rendering ───
+    const statusConfig = {
+      'On Track': { bg: 'bg-green-100', text: 'text-green-800', dot: 'bg-green-500', border: 'border-green-200' },
+      'At Risk':  { bg: 'bg-red-100',   text: 'text-red-800',   dot: 'bg-red-500',   border: 'border-red-200' },
+      'Done':     { bg: 'bg-blue-100',  text: 'text-blue-800',  dot: 'bg-blue-500',  border: 'border-blue-200' }
+    };
+
+    function timeAgo(dateStr) {
+      const diff = Date.now() - new Date(dateStr).getTime();
+      const mins = Math.floor(diff / 60000);
+      if (mins < 1) return 'just now';
+      if (mins < 60) return `${mins}m ago`;
+      const hrs = Math.floor(mins / 60);
+      if (hrs < 24) return `${hrs}h ago`;
+      const days = Math.floor(hrs / 24);
+      return `${days}d ago`;
+    }
+
+    function renderProjects() {
+      const projects = loadProjects();
+      const grid = document.getElementById('projectGrid');
+      const empty = document.getElementById('emptyState');
+
+      // Update summary counts
+      document.getElementById('totalCount').textContent = projects.length;
+      document.getElementById('onTrackCount').textContent = projects.filter(p => p.status === 'On Track').length;
+      document.getElementById('atRiskCount').textContent = projects.filter(p => p.status === 'At Risk').length;
+      document.getElementById('doneCount').textContent = projects.filter(p => p.status === 'Done').length;
+
+      if (projects.length === 0) {
+        grid.classList.add('hidden');
+        empty.classList.remove('hidden');
+        return;
+      }
+      grid.classList.remove('hidden');
+      empty.classList.add('hidden');
+
+      // Sort: At Risk first, then On Track, then Done
+      const order = { 'At Risk': 0, 'On Track': 1, 'Done': 2 };
+      projects.sort((a, b) => (order[a.status] ?? 9) - (order[b.status] ?? 9));
+
+      grid.innerHTML = projects.map(p => {
+        const cfg = statusConfig[p.status] || statusConfig['On Track'];
+        return `
+          <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 card-hover fade-in relative group">
+            <button onclick="deleteProject('${p.id}')"
+              class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity text-gray-300 hover:text-red-500"
+              title="Remove project">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+            <div class="flex items-start justify-between mb-3">
+              <h3 class="text-base font-semibold text-gray-900 pr-6">${p.name}</h3>
+            </div>
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${cfg.bg} ${cfg.text} ${cfg.border} border">
+              <span class="w-1.5 h-1.5 rounded-full ${cfg.dot}"></span>
+              ${p.status}
+            </span>
+            <p class="text-sm text-gray-500 mt-3 leading-relaxed">${p.note || '<em class="text-gray-300">No notes</em>'}</p>
+            <div class="mt-4 pt-3 border-t border-gray-100 flex items-center text-xs text-gray-400">
+              <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              Updated ${timeAgo(p.updatedAt)}
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    // ─── Actions ───
+    function deleteProject(id) {
+      const projects = loadProjects().filter(p => p.id !== id);
+      saveProjects(projects);
+      renderProjects();
+    }
+
+    document.getElementById('addForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('projName').value.trim();
+      const status = document.getElementById('projStatus').value;
+      const note = document.getElementById('projNote').value.trim();
+      if (!name) return;
+
+      const projects = loadProjects();
+      projects.push({
+        id: crypto.randomUUID(),
+        name,
+        status,
+        note,
+        updatedAt: new Date().toISOString()
+      });
+      saveProjects(projects);
+      renderProjects();
+      e.target.reset();
+      document.getElementById('projName').focus();
+    });
+
+    // ─── Live Clock ───
+    function updateClock() {
+      document.getElementById('liveTime').textContent =
+        new Date().toLocaleString('en-US', {
+          weekday: 'short', month: 'short', day: 'numeric',
+          hour: 'numeric', minute: '2-digit', hour12: true
+        });
+    }
+    updateClock();
+    setInterval(updateClock, 30000);
+
+    // ─── Init ───
+    renderProjects();
+  </script>
 </body>
 </html>
